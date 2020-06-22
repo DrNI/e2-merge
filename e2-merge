@@ -1,0 +1,64 @@
+#!/bin/bash
+
+#
+# Script to merge/concatenate output files from Z Cam E2(C) cameras into one 
+# single MOV file.
+#
+# (C) 2020 Niels Ott
+# This software is free software as of the terms of the GNU GPL v3, see
+# file LICENSE.txt
+#
+
+
+args=("$@")
+
+args_len=${#args[@]}
+
+if [ $args_len -lt 2 ] ; then
+    echo "Usage: $0 infile1 infile2 ... outfile.mov"
+    exit 1
+fi    
+
+outfile=${args[$args_len-1]}
+firstfile=${args[0]}
+
+if [ -f "$outfile" ] ; then
+    echo "Output file '$outfile' already exists. Aborting."
+    exit 1;
+fi
+
+TMP_LIST=$(tempfile)
+
+# find FPS value from first file / use E2 meta data
+fps=$(mediainfo "$firstfile" |grep 'com.zcam.camera.projectFps' | awk '{print($3)}') || (
+    echo "Cannot find Z-Cam meta data for frame rate in first file, aborting."
+    exit 1
+)
+
+# sort the file array (except for output file)
+files=$(
+(
+    for (( i=0; $i<$args_len-1; i++ )) ; do
+        echo "${args[$i]}"
+    done
+) | sort)  
+
+# echo $fps
+
+# create input file for ffmpeg, store to tmp file
+(
+    IFS=$'\n' # don't split at whitespace, only newline
+    for f in $files 
+    do
+        path=$(realpath "$f")
+        echo "file '$path'"
+    done    
+) > "$TMP_LIST"
+
+# run ffmpeg
+ffmpeg -f concat -safe 0 -i  "$TMP_LIST" -c:a copy -c:v copy -r "$fps" "$outfile"
+
+
+# cleanup tmp file
+rm "$TMP_LIST"
+
