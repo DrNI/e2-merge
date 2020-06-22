@@ -13,6 +13,15 @@ Linux users do not have this option. e2-merge aims at providing a similar functi
 
 Furthermore, the script may allow to use the output of your E2 when importing the files directly into your NLE fails (as it likely to happen possible with Lightworks 2020.1).
 
+## How To
+
+Use the script e2-merge as follows:
+
+`e2-merge first-input-file.mov other-input-file.mov ... output-file.mov`
+
+MP4 files might also work. Not yet tested. The files will not be re-encoded. Audio and video data are simply copied.
+
+
 ## Status
 
 This is alpha software. Feel free to give feedback. It is being used with the files of an E2C camera.
